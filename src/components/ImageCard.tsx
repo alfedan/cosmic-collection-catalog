@@ -9,6 +9,7 @@ export interface ImageData {
   src: string;
   caption: string;
   date: string;
+  objectName?: string; // Added objectName property
 }
 
 interface ImageCardProps {
@@ -16,35 +17,44 @@ interface ImageCardProps {
   onUpload?: (imageData: string, caption: string, date: string) => void;
   to?: string;
   index: number;
+  objectName?: string; // Added objectName prop
 }
 
-const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, to, index }) => {
+const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, to, index, objectName }) => {
   // Animation delay based on index
   const animationDelay = `${0.05 * (index % 10)}s`;
   
   if (!image && onUpload) {
     return (
-      <div 
-        className="aspect-square animate-fade-in-up"
-        style={{ animationDelay }}
-      >
-        <ImageUpload 
-          onImageUploaded={onUpload}
-          className="h-full"
-        />
+      <div className="flex flex-col animate-fade-in-up" style={{ animationDelay }}>
+        <div className="aspect-square">
+          <ImageUpload 
+            onImageUploaded={onUpload}
+            className="h-full"
+          />
+        </div>
+        {objectName && (
+          <div className="text-center mt-2 text-white/80 text-sm">
+            {objectName}
+          </div>
+        )}
       </div>
     );
   }
   
   if (!image) {
     return (
-      <div 
-        className="aspect-square glass-card rounded-xl animate-fade-in-up"
-        style={{ animationDelay }}
-      >
-        <div className="w-full h-full flex items-center justify-center">
-          <span className="text-white/30">Image non disponible</span>
+      <div className="flex flex-col animate-fade-in-up" style={{ animationDelay }}>
+        <div className="aspect-square glass-card rounded-xl">
+          <div className="w-full h-full flex items-center justify-center">
+            <span className="text-white/30">Image non disponible</span>
+          </div>
         </div>
+        {objectName && (
+          <div className="text-center mt-2 text-white/80 text-sm">
+            {objectName}
+          </div>
+        )}
       </div>
     );
   }
@@ -78,26 +88,34 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, to, index }) => 
     </div>
   );
   
-  if (to) {
-    return (
-      <Link 
-        to={to} 
-        className="block aspect-square glass-card glass-card-hover rounded-xl overflow-hidden animate-fade-in-up"
-        style={{ animationDelay }}
-      >
-        {content}
-      </Link>
-    );
-  }
-  
-  return (
-    <div 
-      className="aspect-square glass-card rounded-xl overflow-hidden animate-fade-in-up"
-      style={{ animationDelay }}
-    >
-      {content}
+  const cardWithObjectName = (
+    <div className="flex flex-col">
+      {to ? (
+        <Link 
+          to={to} 
+          className="block aspect-square glass-card glass-card-hover rounded-xl overflow-hidden animate-fade-in-up"
+          style={{ animationDelay }}
+        >
+          {content}
+        </Link>
+      ) : (
+        <div 
+          className="aspect-square glass-card rounded-xl overflow-hidden animate-fade-in-up"
+          style={{ animationDelay }}
+        >
+          {content}
+        </div>
+      )}
+      
+      {(objectName || image.objectName) && (
+        <div className="text-center mt-2 text-white/80 text-sm">
+          {objectName || image.objectName}
+        </div>
+      )}
     </div>
   );
+  
+  return cardWithObjectName;
 };
 
 export default ImageCard;

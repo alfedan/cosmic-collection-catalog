@@ -33,6 +33,11 @@ const ImageDetail: React.FC<ImageDetailProps> = ({ image }) => {
         </div>
         
         <div className="p-6">
+          {/* Display object name if available */}
+          {image.objectName && (
+            <h2 className="text-2xl font-bold mb-4 text-gradient">{image.objectName}</h2>
+          )}
+          
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
             {image.date && (
               <div className="flex items-center text-white/70 text-sm">

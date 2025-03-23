@@ -63,7 +63,7 @@ const MessierDetail: React.FC = () => {
         <ImageDetail image={mainImage} />
         
         <div className="mt-16">
-          <h2 className="text-2xl font-medium text-gradient mb-6">Images supplémentaires</h2>
+          <h2 className="text-2xl font-medium text-gradient mb-6">Images supplémentaires de {mainImage.objectName || `M${(page - 1) * 10 + imageIndex + 1}`}</h2>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {extraImages.map((image, index) => (
