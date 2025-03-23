@@ -8,6 +8,7 @@ import Index from "./pages/Index";
 import MessierCatalog from "./pages/MessierCatalog";
 import MessierPage from "./pages/MessierPage";
 import MessierDetail from "./pages/MessierDetail";
+import MessierExtraDetail from "./pages/MessierExtraDetail";
 import SolarSystem from "./pages/SolarSystem";
 import OtherViews from "./pages/OtherViews";
 import NotFound from "./pages/NotFound";
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/messier" element={<MessierCatalog />} />
           <Route path="/messier/page/:pageId" element={<MessierPage />} />
           <Route path="/messier/detail/:pageId/:imageId" element={<MessierDetail />} />
+          <Route path="/messier/extra/:pageId/:imageId/:extraId" element={<MessierExtraDetail />} />
           <Route path="/solar-system" element={<SolarSystem />} />
           <Route path="/other-views" element={<OtherViews />} />
           <Route path="*" element={<NotFound />} />

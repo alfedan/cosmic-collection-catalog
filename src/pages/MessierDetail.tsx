@@ -48,7 +48,8 @@ const MessierDetail: React.FC = () => {
       id: `messier-extra-${page}-${imageIndex}-${index}`,
       src: imageData,
       caption,
-      date
+      date,
+      objectName: mainImage?.objectName // Transmettre le nom de l'objet aux images supplémentaires
     };
     setExtraImages(newImages);
   };
@@ -73,6 +74,7 @@ const MessierDetail: React.FC = () => {
                 onUpload={image ? undefined : (imageData, caption, date) => handleImageUpload(index, imageData, caption, date)}
                 to={image ? `/messier/extra/${page}/${imageIndex}/${index}` : undefined}
                 index={index}
+                objectName={mainImage.objectName}
               />
             ))}
           </div>
