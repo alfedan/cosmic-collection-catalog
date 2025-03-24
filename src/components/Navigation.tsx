@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Star, Sun, Image } from 'lucide-react';
+import { Star, Sun, Image, Search, Camera, Book } from 'lucide-react';
 
 interface NavItemProps {
   to: string;
@@ -28,10 +28,31 @@ const Navigation: React.FC = () => {
       />
       
       <NavItem 
+        to="/nightcam"
+        title="NightCam"
+        description="Visualisez et organisez vos captures vidéo nocturnes d'objets astronomiques."
+        icon={<Camera className="w-12 h-12 text-star-white" />}
+      />
+      
+      <NavItem 
+        to="/search"
+        title="Recherche"
+        description="Retrouvez facilement vos images astronomiques par mot-clé ou catégorie."
+        icon={<Search className="w-12 h-12 text-star-white" />}
+      />
+      
+      <NavItem 
         to="/other-views"
         title="Autres Vues Astronomiques"
         description="Contemplez d'autres vues remarquables du cosmos: galaxies, nébuleuses et plus encore."
         icon={<Image className="w-12 h-12 text-star-white" />}
+      />
+      
+      <NavItem 
+        to="/journal"
+        title="Journal"
+        description="Consultez l'historique des dernières activités et téléchargements réalisés."
+        icon={<Book className="w-12 h-12 text-star-gold" />}
       />
     </div>
   );

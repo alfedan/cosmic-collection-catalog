@@ -6,7 +6,7 @@ import Navigation from '../components/Navigation';
 const Index: React.FC = () => {
   return (
     <Layout>
-      <div className="min-h-[80vh] flex flex-col items-center justify-center max-w-5xl mx-auto text-center animate-fade-in">
+      <div className="min-h-[80vh] flex flex-col items-center justify-center max-w-7xl mx-auto text-center animate-fade-in">
         <span className="text-sm px-2.5 py-1 rounded-full bg-cosmic-purple/30 text-white/90 mb-6 border border-cosmic-purple/30">
           Explorez l'univers
         </span>
@@ -19,7 +19,9 @@ const Index: React.FC = () => {
           Votre collection personnelle d'images astronomiques
         </p>
         
-        <Navigation />
+        <div className="w-full">
+          <Navigation />
+        </div>
       </div>
     </Layout>
   );
