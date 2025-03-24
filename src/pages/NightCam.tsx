@@ -18,13 +18,13 @@ const NightCam: React.FC = () => {
   // Page actuellement sélectionnée
   const [currentPage, setCurrentPage] = useState<string>('page-1');
   
-  // Images de la page actuelle
+  // Images de la page actuelle - modifié pour avoir 12 vignettes au lieu de 10
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
     const savedImages = localStorage.getItem(`nightcam-${currentPage}`);
     if (savedImages) {
       return JSON.parse(savedImages);
     }
-    return Array(10).fill(undefined);
+    return Array(12).fill(undefined);
   });
   
   // Mettre à jour le localStorage quand les pages changent
@@ -38,7 +38,7 @@ const NightCam: React.FC = () => {
     if (savedImages) {
       setImages(JSON.parse(savedImages));
     } else {
-      setImages(Array(10).fill(undefined));
+      setImages(Array(12).fill(undefined));
     }
   }, [currentPage]);
   
@@ -158,7 +158,7 @@ const NightCam: React.FC = () => {
           </button>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
           {images.map((image, index) => (
             <ImageCard
               key={index}
