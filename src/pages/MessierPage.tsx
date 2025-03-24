@@ -1,8 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ImageCard, { ImageData } from '../components/ImageCard';
+import { toast } from "@/components/ui/use-toast";
 
 const getMessierName = (number: number): string => {
   const messierObjects: Record<number, string> = {
@@ -126,14 +126,12 @@ const MessierPage: React.FC = () => {
   const navigate = useNavigate();
   const page = parseInt(pageId || '1');
   
-  // Vérifier que la page est valide (entre 1 et 11)
   useEffect(() => {
     if (isNaN(page) || page < 1 || page > 11) {
       navigate('/messier');
     }
   }, [page, navigate]);
   
-  // Récupérer les images déjà enregistrées depuis le localStorage
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
     const savedImages = localStorage.getItem(`messier-page-${page}`);
     if (savedImages) {
@@ -142,13 +140,11 @@ const MessierPage: React.FC = () => {
     return Array(10).fill(undefined);
   });
   
-  // Mettre à jour le localStorage quand les images changent
   useEffect(() => {
     localStorage.setItem(`messier-page-${page}`, JSON.stringify(images));
   }, [images, page]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
-    // Calcul du numéro de Messier pour cet index
     const messierNumber = (page - 1) * 10 + index + 1;
     const objectName = getMessierName(messierNumber);
     
@@ -158,12 +154,35 @@ const MessierPage: React.FC = () => {
       src: imageData,
       caption,
       date,
-      objectName // Ajout du nom de l'objet Messier
+      objectName
     };
     setImages(newImages);
+    
+    toast({
+      title: "Image ajoutée",
+      description: `Image ajoutée pour ${objectName}`,
+    });
   };
   
-  // Calcul des numéros de Messier pour cette page
+  const handleImageDelete = (id: string) => {
+    const newImages = [...images];
+    const index = newImages.findIndex(img => img?.id === id);
+    
+    if (index !== -1) {
+      const objectName = newImages[index]?.objectName;
+      newImages[index] = undefined;
+      setImages(newImages);
+      
+      localStorage.removeItem(`messier-extra-${page}-${index}`);
+      
+      toast({
+        title: "Image supprimée",
+        description: `L'image de ${objectName} a été supprimée`,
+        variant: "destructive",
+      });
+    }
+  };
+  
   const startNumber = (page - 1) * 10 + 1;
   
   return (
@@ -192,6 +211,7 @@ const MessierPage: React.FC = () => {
                 key={index}
                 image={image}
                 onUpload={image ? undefined : (imageData, caption, date) => handleImageUpload(index, imageData, caption, date)}
+                onDelete={handleImageDelete}
                 to={image ? `/messier/detail/${page}/${index}` : undefined}
                 index={index}
                 objectName={objectName}

@@ -2,6 +2,20 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import ImageCard, { ImageData } from '../components/ImageCard';
+import { toast } from "@/components/ui/use-toast";
+
+const solarSystemObjects = [
+  "Soleil",
+  "Mercure",
+  "Venus",
+  "Terre",
+  "Lune",
+  "Mars",
+  "Jupiter",
+  "Saturne",
+  "Uranus",
+  "Neptune"
+];
 
 const SolarSystem: React.FC = () => {
   // Récupérer les images déjà enregistrées depuis le localStorage
@@ -19,14 +33,41 @@ const SolarSystem: React.FC = () => {
   }, [images]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
+    const objectName = solarSystemObjects[index];
+    
     const newImages = [...images];
     newImages[index] = {
       id: `solar-system-${index}`,
       src: imageData,
       caption,
-      date
+      date,
+      objectName
     };
     setImages(newImages);
+    
+    // Notification de succès
+    toast({
+      title: "Image ajoutée",
+      description: `Image ajoutée pour ${objectName}`,
+    });
+  };
+  
+  const handleImageDelete = (id: string) => {
+    const newImages = [...images];
+    const index = newImages.findIndex(img => img?.id === id);
+    
+    if (index !== -1) {
+      const objectName = newImages[index]?.objectName;
+      newImages[index] = undefined;
+      setImages(newImages);
+      
+      // Notification de suppression
+      toast({
+        title: "Image supprimée",
+        description: `L'image de ${objectName} a été supprimée`,
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -51,8 +92,10 @@ const SolarSystem: React.FC = () => {
               key={index}
               image={image}
               onUpload={image ? undefined : (imageData, caption, date) => handleImageUpload(index, imageData, caption, date)}
+              onDelete={handleImageDelete}
               to={image ? `/solar-system/detail/${index}` : undefined}
               index={index}
+              objectName={solarSystemObjects[index]}
             />
           ))}
         </div>

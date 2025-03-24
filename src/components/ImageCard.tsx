@@ -3,6 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Info } from 'lucide-react';
 import ImageUpload from './ImageUpload';
+import SecureImageMenu from './SecureImageMenu';
 
 export interface ImageData {
   id: string;
@@ -15,14 +16,21 @@ export interface ImageData {
 interface ImageCardProps {
   image?: ImageData;
   onUpload?: (imageData: string, caption: string, date: string) => void;
+  onDelete?: (id: string) => void;
   to?: string;
   index: number;
   objectName?: string; // Added objectName prop
 }
 
-const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, to, index, objectName }) => {
+const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, index, objectName }) => {
   // Animation delay based on index
   const animationDelay = `${0.05 * (index % 10)}s`;
+  
+  const handleDelete = () => {
+    if (image && onDelete) {
+      onDelete(image.id);
+    }
+  };
   
   if (!image && onUpload) {
     return (
@@ -61,6 +69,12 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, to, index, objec
   
   const content = (
     <div className="h-full w-full overflow-hidden rounded-xl relative group">
+      {image && <SecureImageMenu 
+        imageId={image.id}
+        imageSrc={image.src}
+        onDelete={handleDelete}
+      />}
+      
       <img 
         src={image.src} 
         alt={image.caption || 'Image astronomique'} 

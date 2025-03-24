@@ -11,6 +11,9 @@ import MessierDetail from "./pages/MessierDetail";
 import MessierExtraDetail from "./pages/MessierExtraDetail";
 import SolarSystem from "./pages/SolarSystem";
 import OtherViews from "./pages/OtherViews";
+import NightCam from "./pages/NightCam";
+import Search from "./pages/Search";
+import Journal from "./pages/Journal";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +32,9 @@ const App = () => (
           <Route path="/messier/extra/:pageId/:imageId/:extraId" element={<MessierExtraDetail />} />
           <Route path="/solar-system" element={<SolarSystem />} />
           <Route path="/other-views" element={<OtherViews />} />
+          <Route path="/nightcam" element={<NightCam />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/journal" element={<Journal />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

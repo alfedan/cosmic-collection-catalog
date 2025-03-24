@@ -1,9 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ImageDetail from '../components/ImageDetail';
 import ImageCard, { ImageData } from '../components/ImageCard';
+import { toast } from "@/components/ui/use-toast";
 
 const MessierDetail: React.FC = () => {
   const { pageId, imageId } = useParams<{ pageId: string; imageId: string }>();
@@ -52,6 +52,29 @@ const MessierDetail: React.FC = () => {
       objectName: mainImage?.objectName // Transmettre le nom de l'objet aux images supplémentaires
     };
     setExtraImages(newImages);
+    
+    // Notification de succès
+    toast({
+      title: "Image supplémentaire ajoutée",
+      description: `Image ajoutée pour ${mainImage?.objectName || `M${(page - 1) * 10 + imageIndex + 1}`}`,
+    });
+  };
+  
+  const handleImageDelete = (id: string) => {
+    const newImages = [...extraImages];
+    const index = newImages.findIndex(img => img?.id === id);
+    
+    if (index !== -1) {
+      newImages[index] = undefined;
+      setExtraImages(newImages);
+      
+      // Notification de suppression
+      toast({
+        title: "Image supprimée",
+        description: `L'image supplémentaire a été supprimée`,
+        variant: "destructive",
+      });
+    }
   };
   
   if (!mainImage) {
@@ -72,6 +95,7 @@ const MessierDetail: React.FC = () => {
                 key={index}
                 image={image}
                 onUpload={image ? undefined : (imageData, caption, date) => handleImageUpload(index, imageData, caption, date)}
+                onDelete={handleImageDelete}
                 to={image ? `/messier/extra/${page}/${imageIndex}/${index}` : undefined}
                 index={index}
                 objectName={mainImage.objectName}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import ImageCard, { ImageData } from '../components/ImageCard';
+import { toast } from "@/components/ui/use-toast";
 
 const OtherViews: React.FC = () => {
   // Récupérer les images déjà enregistrées depuis le localStorage
@@ -27,6 +28,29 @@ const OtherViews: React.FC = () => {
       date
     };
     setImages(newImages);
+    
+    // Notification de succès
+    toast({
+      title: "Image ajoutée",
+      description: "Votre image a été ajoutée aux Autres Vues"
+    });
+  };
+  
+  const handleImageDelete = (id: string) => {
+    const newImages = [...images];
+    const index = newImages.findIndex(img => img?.id === id);
+    
+    if (index !== -1) {
+      newImages[index] = undefined;
+      setImages(newImages);
+      
+      // Notification de suppression
+      toast({
+        title: "Image supprimée",
+        description: "L'image a été supprimée",
+        variant: "destructive",
+      });
+    }
   };
   
   return (
@@ -51,6 +75,7 @@ const OtherViews: React.FC = () => {
               key={index}
               image={image}
               onUpload={image ? undefined : (imageData, caption, date) => handleImageUpload(index, imageData, caption, date)}
+              onDelete={handleImageDelete}
               to={image ? `/other-views/detail/${index}` : undefined}
               index={index}
             />

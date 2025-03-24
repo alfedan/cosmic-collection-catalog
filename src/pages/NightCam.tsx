@@ -1,0 +1,179 @@
+
+import React, { useState, useEffect } from 'react';
+import Layout from '../components/Layout';
+import ImageCard, { ImageData } from '../components/ImageCard';
+import { Plus } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
+
+const NightCam: React.FC = () => {
+  // État pour stocker les pages de vignettes
+  const [pages, setPages] = useState<{ id: string; name: string }[]>(() => {
+    const savedPages = localStorage.getItem('nightcam-pages');
+    if (savedPages) {
+      return JSON.parse(savedPages);
+    }
+    return [{ id: 'page-1', name: 'Session 1' }];
+  });
+  
+  // Page actuellement sélectionnée
+  const [currentPage, setCurrentPage] = useState<string>('page-1');
+  
+  // Images de la page actuelle
+  const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
+    const savedImages = localStorage.getItem(`nightcam-${currentPage}`);
+    if (savedImages) {
+      return JSON.parse(savedImages);
+    }
+    return Array(10).fill(undefined);
+  });
+  
+  // Mettre à jour le localStorage quand les pages changent
+  useEffect(() => {
+    localStorage.setItem('nightcam-pages', JSON.stringify(pages));
+  }, [pages]);
+  
+  // Charger les images quand la page change
+  useEffect(() => {
+    const savedImages = localStorage.getItem(`nightcam-${currentPage}`);
+    if (savedImages) {
+      setImages(JSON.parse(savedImages));
+    } else {
+      setImages(Array(10).fill(undefined));
+    }
+  }, [currentPage]);
+  
+  // Sauvegarder les images quand elles changent
+  useEffect(() => {
+    localStorage.setItem(`nightcam-${currentPage}`, JSON.stringify(images));
+  }, [images, currentPage]);
+  
+  const handleAddPage = () => {
+    const pageId = `page-${pages.length + 1}`;
+    const pageName = `Session ${pages.length + 1}`;
+    
+    setPages([...pages, { id: pageId, name: pageName }]);
+    setCurrentPage(pageId);
+    
+    toast({
+      title: "Nouvelle page ajoutée",
+      description: `Page "${pageName}" créée avec succès`
+    });
+  };
+  
+  const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
+    const objectName = `NightCam - ${date}`;
+    
+    const newImages = [...images];
+    newImages[index] = {
+      id: `nightcam-${currentPage}-${index}`,
+      src: imageData,
+      caption,
+      date,
+      objectName
+    };
+    setImages(newImages);
+    
+    // Ajouter au journal
+    const journal = JSON.parse(localStorage.getItem('astro-journal') || '[]');
+    journal.unshift({
+      action: 'upload',
+      section: 'NightCam',
+      page: pages.find(p => p.id === currentPage)?.name,
+      caption,
+      date: new Date().toISOString(),
+      imageDate: date,
+      id: `nightcam-${currentPage}-${index}`
+    });
+    localStorage.setItem('astro-journal', JSON.stringify(journal.slice(0, 20)));
+    
+    toast({
+      title: "Image ajoutée",
+      description: `Image ajoutée à ${pages.find(p => p.id === currentPage)?.name}`
+    });
+  };
+  
+  const handleImageDelete = (id: string) => {
+    const newImages = [...images];
+    const index = newImages.findIndex(img => img?.id === id);
+    
+    if (index !== -1) {
+      newImages[index] = undefined;
+      setImages(newImages);
+      
+      // Ajouter au journal
+      const journal = JSON.parse(localStorage.getItem('astro-journal') || '[]');
+      journal.unshift({
+        action: 'delete',
+        section: 'NightCam',
+        page: pages.find(p => p.id === currentPage)?.name,
+        date: new Date().toISOString(),
+        id
+      });
+      localStorage.setItem('astro-journal', JSON.stringify(journal.slice(0, 20)));
+      
+      toast({
+        title: "Image supprimée",
+        description: "L'image a été supprimée",
+        variant: "destructive",
+      });
+    }
+  };
+  
+  return (
+    <Layout>
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-10 animate-fade-in-up">
+          <span className="text-sm px-2.5 py-1 rounded-full bg-cosmic-purple/30 text-white/90 mb-4 inline-block border border-cosmic-purple/30">
+            Collection
+          </span>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4 text-gradient">
+            NightCam
+          </h1>
+          <p className="text-white/70 max-w-2xl mx-auto">
+            Capturez vos sessions d'observation nocturne. Ajoutez des pages pour organiser vos différentes sessions.
+          </p>
+        </div>
+        
+        <div className="flex flex-wrap items-center gap-2 mb-8">
+          {pages.map((page) => (
+            <button
+              key={page.id}
+              onClick={() => setCurrentPage(page.id)}
+              className={`px-4 py-2 rounded-full text-sm transition-all ${
+                currentPage === page.id
+                ? 'bg-cosmic-indigo text-white'
+                : 'bg-cosmic-navy/50 text-white/70 hover:bg-cosmic-navy/80 hover:text-white'
+              }`}
+            >
+              {page.name}
+            </button>
+          ))}
+          
+          <button
+            onClick={handleAddPage}
+            className="px-3 py-2 rounded-full bg-cosmic-indigo/30 text-white/90 hover:bg-cosmic-indigo/50 transition-colors flex items-center gap-1"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Ajouter</span>
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          {images.map((image, index) => (
+            <ImageCard
+              key={index}
+              image={image}
+              onUpload={image ? undefined : (imageData, caption, date) => handleImageUpload(index, imageData, caption, date)}
+              onDelete={handleImageDelete}
+              to={image ? `/nightcam/${currentPage}/${index}` : undefined}
+              index={index}
+              objectName={image?.date ? `Session du ${image.date}` : undefined}
+            />
+          ))}
+        </div>
+      </div>
+    </Layout>
+  );
+};
+
+export default NightCam;
