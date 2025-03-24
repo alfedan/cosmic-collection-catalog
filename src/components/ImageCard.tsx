@@ -1,16 +1,16 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Calendar, Info } from 'lucide-react';
+import { Calendar, Info, Trash2 } from 'lucide-react';
 import ImageUpload from './ImageUpload';
-import SecureImageMenu from './SecureImageMenu';
+import { useAuth } from '../contexts/AuthContext';
 
 export interface ImageData {
   id: string;
   src: string;
   caption: string;
   date: string;
-  objectName?: string; // Added objectName property
+  objectName?: string;
 }
 
 interface ImageCardProps {
@@ -19,11 +19,11 @@ interface ImageCardProps {
   onDelete?: (id: string) => void;
   to?: string;
   index: number;
-  objectName?: string; // Added objectName prop
+  objectName?: string;
 }
 
 const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, index, objectName }) => {
-  // Animation delay based on index
+  const { isAdmin } = useAuth();
   const animationDelay = `${0.05 * (index % 10)}s`;
   
   const handleDelete = () => {
@@ -32,7 +32,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, in
     }
   };
   
-  if (!image && onUpload) {
+  if (!image && onUpload && isAdmin) {
     return (
       <div className="flex flex-col animate-fade-in-up" style={{ animationDelay }}>
         <div className="aspect-square">
@@ -69,11 +69,14 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, in
   
   const content = (
     <div className="h-full w-full overflow-hidden rounded-xl relative group">
-      {image && <SecureImageMenu 
-        imageId={image.id}
-        imageSrc={image.src}
-        onDelete={handleDelete}
-      />}
+      {isAdmin && onDelete && (
+        <button 
+          onClick={handleDelete}
+          className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 backdrop-blur-sm p-1.5 rounded-full hover:bg-red-700/70"
+        >
+          <Trash2 className="w-4 h-4 text-white" />
+        </button>
+      )}
       
       <img 
         src={image.src} 
@@ -94,7 +97,7 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, in
         )}
       </div>
       
-      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+      <div className="absolute top-3 left-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <div className="bg-black/50 backdrop-blur-sm p-1.5 rounded-full">
           <Info className="w-4 h-4 text-white" />
         </div>

@@ -1,11 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ImageDetail from '../components/ImageDetail';
 import ImageCard, { ImageData } from '../components/ImageCard';
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '../contexts/AuthContext';
+import { Shield, AlertTriangle } from 'lucide-react';
 
 const MessierDetail: React.FC = () => {
+  const { isAdmin } = useAuth();
   const { pageId, imageId } = useParams<{ pageId: string; imageId: string }>();
   const navigate = useNavigate();
   
@@ -43,6 +47,8 @@ const MessierDetail: React.FC = () => {
   }, [extraImages, page, imageIndex]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
+    if (!isAdmin) return;
+    
     const newImages = [...extraImages];
     newImages[index] = {
       id: `messier-extra-${page}-${imageIndex}-${index}`,
@@ -61,6 +67,8 @@ const MessierDetail: React.FC = () => {
   };
   
   const handleImageDelete = (id: string) => {
+    if (!isAdmin) return;
+    
     const newImages = [...extraImages];
     const index = newImages.findIndex(img => img?.id === id);
     
@@ -87,7 +95,25 @@ const MessierDetail: React.FC = () => {
         <ImageDetail image={mainImage} />
         
         <div className="mt-16">
-          <h2 className="text-2xl font-medium text-gradient mb-6">Images supplémentaires de {mainImage.objectName || `M${(page - 1) * 10 + imageIndex + 1}`}</h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-medium text-gradient">
+              Images supplémentaires de {mainImage.objectName || `M${(page - 1) * 10 + imageIndex + 1}`}
+            </h2>
+            
+            {!isAdmin && (
+              <div className="bg-amber-800/30 border border-amber-700/30 text-amber-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Mode lecture seule. <Link to="/admin" className="underline hover:text-white transition-colors">Se connecter</Link></span>
+              </div>
+            )}
+            
+            {isAdmin && (
+              <div className="bg-green-800/30 border border-green-700/30 text-green-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4" />
+                <span>Mode administrateur actif</span>
+              </div>
+            )}
+          </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
             {extraImages.map((image, index) => (

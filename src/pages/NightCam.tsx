@@ -1,11 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ImageCard, { ImageData } from '../components/ImageCard';
-import { Plus } from 'lucide-react';
+import { Plus, Shield, AlertTriangle } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
+import { useAuth } from '../contexts/AuthContext';
 
 const NightCam: React.FC = () => {
+  const { isAdmin } = useAuth();
+  
   // État pour stocker les pages de vignettes
   const [pages, setPages] = useState<{ id: string; name: string }[]>(() => {
     const savedPages = localStorage.getItem('nightcam-pages');
@@ -18,7 +22,7 @@ const NightCam: React.FC = () => {
   // Page actuellement sélectionnée
   const [currentPage, setCurrentPage] = useState<string>('page-1');
   
-  // Images de la page actuelle - modifié pour avoir 12 vignettes au lieu de 10
+  // Images de la page actuelle - 12 vignettes
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
     const savedImages = localStorage.getItem(`nightcam-${currentPage}`);
     if (savedImages) {
@@ -48,6 +52,8 @@ const NightCam: React.FC = () => {
   }, [images, currentPage]);
   
   const handleAddPage = () => {
+    if (!isAdmin) return;
+    
     const pageId = `page-${pages.length + 1}`;
     const pageName = `Session ${pages.length + 1}`;
     
@@ -61,6 +67,8 @@ const NightCam: React.FC = () => {
   };
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
+    if (!isAdmin) return;
+    
     const objectName = `NightCam - ${date}`;
     
     const newImages = [...images];
@@ -93,6 +101,8 @@ const NightCam: React.FC = () => {
   };
   
   const handleImageDelete = (id: string) => {
+    if (!isAdmin) return;
+    
     const newImages = [...images];
     const index = newImages.findIndex(img => img?.id === id);
     
@@ -130,8 +140,28 @@ const NightCam: React.FC = () => {
             NightCam
           </h1>
           <p className="text-white/70 max-w-2xl mx-auto">
-            Capturez vos sessions d'observation nocturne. Ajoutez des pages pour organiser vos différentes sessions.
+            Capturez vos sessions d'observation nocturne. 
+            {isAdmin ? "Ajoutez des pages pour organiser vos différentes sessions." : 
+              "Connectez-vous en tant qu'administrateur pour télécharger ou gérer les images."}
           </p>
+          
+          {!isAdmin && (
+            <div className="mt-4 flex justify-center">
+              <div className="bg-amber-800/30 border border-amber-700/30 text-amber-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Mode lecture seule. <Link to="/admin" className="underline hover:text-white transition-colors">Se connecter en tant qu'administrateur</Link></span>
+              </div>
+            </div>
+          )}
+          
+          {isAdmin && (
+            <div className="mt-4 flex justify-center">
+              <div className="bg-green-800/30 border border-green-700/30 text-green-200 px-4 py-2 rounded-lg flex items-center gap-2 text-sm">
+                <Shield className="w-4 h-4" />
+                <span>Mode administrateur actif. Vous pouvez modifier le contenu.</span>
+              </div>
+            </div>
+          )}
         </div>
         
         <div className="flex flex-wrap items-center gap-2 mb-8">
@@ -149,13 +179,15 @@ const NightCam: React.FC = () => {
             </button>
           ))}
           
-          <button
-            onClick={handleAddPage}
-            className="px-3 py-2 rounded-full bg-cosmic-indigo/30 text-white/90 hover:bg-cosmic-indigo/50 transition-colors flex items-center gap-1"
-          >
-            <Plus className="w-4 h-4" />
-            <span>Ajouter</span>
-          </button>
+          {isAdmin && (
+            <button
+              onClick={handleAddPage}
+              className="px-3 py-2 rounded-full bg-cosmic-indigo/30 text-white/90 hover:bg-cosmic-indigo/50 transition-colors flex items-center gap-1"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Ajouter</span>
+            </button>
+          )}
         </div>
         
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">

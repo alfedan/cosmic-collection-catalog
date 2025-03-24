@@ -1,7 +1,10 @@
 
 import React, { useState, useRef } from 'react';
-import { Upload, Check, X } from 'lucide-react';
-import PasswordModal from './PasswordModal';
+import { Upload } from 'lucide-react';
+import { toast } from "@/components/ui/use-toast";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 interface ImageUploadProps {
   onImageUploaded: (imageData: string, caption: string, date: string) => void;
@@ -33,7 +36,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className = 
     }
   };
 
-  const handlePasswordSuccess = () => {
+  const handleSubmit = () => {
     if (file) {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -42,6 +45,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className = 
           setFile(null);
           setCaption('');
           setDate('');
+          toast({
+            title: "Image ajoutée",
+            description: "L'image a été ajoutée avec succès",
+          });
         }
       };
       reader.readAsDataURL(file);
@@ -49,7 +56,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className = 
     setIsModalOpen(false);
   };
 
-  const handlePasswordFailure = () => {
+  const handleCancel = () => {
     setIsModalOpen(false);
     setFile(null);
   };
@@ -90,17 +97,64 @@ const ImageUpload: React.FC<ImageUploadProps> = ({ onImageUploaded, className = 
         </div>
       </div>
       
-      <PasswordModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handlePasswordSuccess}
-        onFailure={handlePasswordFailure}
-        file={file}
-        caption={caption}
-        setCaption={setCaption}
-        date={date}
-        setDate={setDate}
-      />
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="bg-cosmic-navy border border-white/10 text-white">
+          <DialogHeader>
+            <DialogTitle className="text-white">Ajouter une image</DialogTitle>
+          </DialogHeader>
+          
+          {file && (
+            <div className="flex justify-center py-4">
+              <div className="relative w-48 h-48 rounded-lg overflow-hidden border border-white/20">
+                <img 
+                  src={URL.createObjectURL(file)} 
+                  alt="Aperçu" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+          )}
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80">Date</label>
+              <Input
+                type="date"
+                value={date}
+                onChange={(e) => setDate(e.target.value)}
+                className="bg-cosmic-dark/50 border-white/10 text-white"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-white/80">Description</label>
+              <textarea
+                value={caption}
+                onChange={(e) => setCaption(e.target.value)}
+                placeholder="Décrivez votre image..."
+                rows={3}
+                className="w-full px-3 py-2 rounded-md bg-cosmic-dark/50 border border-white/10 text-white focus:ring-2 focus:ring-cosmic-purple/50 focus:border-cosmic-purple/50 outline-none resize-none"
+              />
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={handleCancel}
+              className="border-white/10 text-white/70 hover:bg-white/5 hover:text-white"
+            >
+              Annuler
+            </Button>
+            <Button 
+              onClick={handleSubmit}
+              className="bg-cosmic-purple hover:bg-cosmic-purple/90 text-white"
+            >
+              Ajouter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 };
