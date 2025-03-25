@@ -20,9 +20,10 @@ interface ImageCardProps {
   to?: string;
   index: number;
   objectName?: string;
+  className?: string;
 }
 
-const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, index, objectName }) => {
+const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, index, objectName, className = "" }) => {
   const { isAdmin } = useAuth();
   const animationDelay = `${0.05 * (index % 10)}s`;
   
@@ -68,10 +69,13 @@ const ImageCard: React.FC<ImageCardProps> = ({ image, onUpload, onDelete, to, in
   }
   
   const content = (
-    <div className="h-full w-full overflow-hidden rounded-xl relative group">
+    <div className={`h-full w-full overflow-hidden rounded-xl relative group ${className}`}>
       {isAdmin && onDelete && (
         <button 
-          onClick={handleDelete}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleDelete();
+          }}
           className="absolute top-3 right-3 z-10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/50 backdrop-blur-sm p-1.5 rounded-full hover:bg-red-700/70"
         >
           <Trash2 className="w-4 h-4 text-white" />

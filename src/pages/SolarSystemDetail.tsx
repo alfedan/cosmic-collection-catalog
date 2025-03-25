@@ -4,9 +4,10 @@ import { useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
 import ImageDetail from '../components/ImageDetail';
 import ImageCard from '../components/ImageCard';
-import { AlertTriangle, Shield } from 'lucide-react';
+import { AlertTriangle, Shield, X, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { Dialog, DialogContent } from '../components/ui/dialog';
 
 interface SolarSystemImage {
   id: string;
@@ -30,6 +31,8 @@ const SolarSystemDetail: React.FC = () => {
   const [image, setImage] = useState<SolarSystemImage | null>(null);
   const [secondaryImages, setSecondaryImages] = useState<(SecondaryImage | undefined)[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<SecondaryImage | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     // Récupérer les images depuis le localStorage
@@ -97,6 +100,12 @@ const SolarSystemDetail: React.FC = () => {
     }
   };
 
+  // Fonction pour ouvrir le modal avec l'image sélectionnée
+  const handleImageClick = (image: SecondaryImage) => {
+    setSelectedImage(image);
+    setDialogOpen(true);
+  };
+
   if (loading) {
     return (
       <Layout>
@@ -155,19 +164,58 @@ const SolarSystemDetail: React.FC = () => {
           </div>
           
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-            {secondaryImages.map((image, index) => (
-              <ImageCard
-                key={index}
-                image={image}
-                onUpload={image ? undefined : (imageData, caption, date) => handleSecondaryImageUpload(index, imageData, caption, date)}
-                onDelete={handleSecondaryImageDelete}
-                index={index}
-                to={undefined}
-              />
+            {secondaryImages.map((secondaryImage, index) => (
+              <div key={index} onClick={() => secondaryImage && handleImageClick(secondaryImage)}>
+                <ImageCard
+                  image={secondaryImage}
+                  onUpload={secondaryImage ? undefined : (imageData, caption, date) => handleSecondaryImageUpload(index, imageData, caption, date)}
+                  onDelete={handleSecondaryImageDelete}
+                  index={index}
+                  to={undefined}
+                  className={secondaryImage ? "cursor-pointer hover:opacity-90 transition-opacity" : ""}
+                />
+              </div>
             ))}
           </div>
         </div>
       </div>
+
+      {/* Modal pour afficher l'image en grand format */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="bg-cosmic-dark border-cosmic-indigo/50 max-w-3xl w-[90vw] p-0">
+          {selectedImage && (
+            <div className="relative">
+              <button 
+                onClick={() => setDialogOpen(false)} 
+                className="absolute top-2 right-2 z-10 bg-black/50 backdrop-blur-sm p-1.5 rounded-full hover:bg-red-700/70 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+              
+              <div className="w-full max-h-[80vh] overflow-hidden">
+                <img 
+                  src={selectedImage.src} 
+                  alt={selectedImage.caption || 'Image astronomique'} 
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              
+              <div className="p-4 bg-cosmic-dark border-t border-cosmic-indigo/20">
+                {selectedImage.caption && (
+                  <p className="text-white/90 font-medium mb-2">{selectedImage.caption}</p>
+                )}
+                
+                {selectedImage.date && (
+                  <div className="flex items-center text-white/60 text-sm">
+                    <Calendar className="w-4 h-4 mr-2" />
+                    <span>{selectedImage.date}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   );
 };
