@@ -8,32 +8,30 @@ import { Dialog, DialogContent } from '../components/ui/dialog';
 import { Calendar, X } from 'lucide-react';
 import { DialogTitle } from '@radix-ui/react-dialog';
 
-const MessierExtraDetail: React.FC = () => {
-  const { pageId, imageId, extraId } = useParams<{ pageId: string; imageId: string; extraId: string }>();
+const OtherViewsDetail: React.FC = () => {
+  const { imageId } = useParams<{ imageId: string }>();
   const navigate = useNavigate();
   
-  const page = parseInt(pageId || '1');
   const imageIndex = parseInt(imageId || '0');
-  const extraIndex = parseInt(extraId || '0');
   
-  // Récupérer l'image supplémentaire depuis le localStorage
+  // Récupérer l'image depuis le localStorage
   const [image, setImage] = useState<ImageData | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   
-  // Charger l'image supplémentaire
+  // Charger l'image
   useEffect(() => {
-    const savedImages = localStorage.getItem(`messier-extra-${page}-${imageIndex}`);
+    const savedImages = localStorage.getItem('other-views');
     if (savedImages) {
       const images = JSON.parse(savedImages);
-      if (images[extraIndex]) {
-        setImage(images[extraIndex]);
+      if (images[imageIndex]) {
+        setImage(images[imageIndex]);
       } else {
-        navigate(`/messier/detail/${page}/${imageIndex}`);
+        navigate('/other-views');
       }
     } else {
-      navigate(`/messier/detail/${page}/${imageIndex}`);
+      navigate('/other-views');
     }
-  }, [page, imageIndex, extraIndex, navigate]);
+  }, [imageIndex, navigate]);
   
   if (!image) {
     return null; // Attendre que l'image soit chargée
@@ -98,4 +96,4 @@ const MessierExtraDetail: React.FC = () => {
   );
 };
 
-export default MessierExtraDetail;
+export default OtherViewsDetail;

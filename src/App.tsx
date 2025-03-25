@@ -13,6 +13,7 @@ import MessierExtraDetail from "./pages/MessierExtraDetail";
 import SolarSystem from "./pages/SolarSystem";
 import SolarSystemDetail from "./pages/SolarSystemDetail";
 import OtherViews from "./pages/OtherViews";
+import OtherViewsDetail from "./pages/OtherViewsDetail";
 import NightCam from "./pages/NightCam";
 import Search from "./pages/Search";
 import Journal from "./pages/Journal";
@@ -37,6 +38,7 @@ const App = () => (
             <Route path="/solar-system" element={<SolarSystem />} />
             <Route path="/solar-system/detail/:imageId" element={<SolarSystemDetail />} />
             <Route path="/other-views" element={<OtherViews />} />
+            <Route path="/other-views/detail/:imageId" element={<OtherViewsDetail />} />
             <Route path="/nightcam" element={<NightCam />} />
             <Route path="/search" element={<Search />} />
             <Route path="/journal" element={<Journal />} />

@@ -8,6 +8,7 @@ import { AlertTriangle, Shield, X, Calendar } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Dialog, DialogContent } from '../components/ui/dialog';
+import { DialogTitle } from '@radix-ui/react-dialog';
 
 interface SolarSystemImage {
   id: string;
@@ -183,6 +184,7 @@ const SolarSystemDetail: React.FC = () => {
       {/* Modal pour afficher l'image en grand format */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="bg-cosmic-dark border-cosmic-indigo/50 max-w-3xl w-[90vw] p-0">
+          <DialogTitle className="sr-only">Image détaillée</DialogTitle>
           {selectedImage && (
             <div className="relative">
               <button 
