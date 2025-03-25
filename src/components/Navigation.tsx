@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useMobile } from '@/hooks/use-mobile';
+import { useIsMobile } from '@/hooks/use-mobile';
 import AdminButton from './AdminButton';
 
 const Navigation: React.FC = () => {
-  const isMobile = useMobile();
+  const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
   const [activeLink, setActiveLink] = useState('/');
   const location = useLocation();
