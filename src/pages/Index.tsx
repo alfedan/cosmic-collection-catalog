@@ -1,7 +1,6 @@
 
 import React from 'react';
 import Layout from '../components/Layout';
-import Navigation from '../components/Navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -42,8 +41,46 @@ const Index: React.FC = () => {
           </div>
         )}
         
-        <div className="w-full">
-          <Navigation />
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-6 mt-8">
+          <Link 
+            to="/messier"
+            className="aspect-square glass-card glass-card-hover cosmic-glow-hover rounded-xl p-4 flex flex-col items-center justify-center text-center transform transition-all duration-500 hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-cosmic-indigo/40 mb-4 backdrop-blur-sm border border-white/10">
+              <Star className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-gradient text-lg font-medium mb-2">Catalogue Messier</h3>
+          </Link>
+          
+          <Link 
+            to="/solar-system"
+            className="aspect-square glass-card glass-card-hover cosmic-glow-hover rounded-xl p-4 flex flex-col items-center justify-center text-center transform transition-all duration-500 hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-cosmic-indigo/40 mb-4 backdrop-blur-sm border border-white/10">
+              <Sun className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-gradient text-lg font-medium mb-2">Système Solaire</h3>
+          </Link>
+          
+          <Link 
+            to="/other-views"
+            className="aspect-square glass-card glass-card-hover cosmic-glow-hover rounded-xl p-4 flex flex-col items-center justify-center text-center transform transition-all duration-500 hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-cosmic-indigo/40 mb-4 backdrop-blur-sm border border-white/10">
+              <Image className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-gradient text-lg font-medium mb-2">Autres Vues</h3>
+          </Link>
+          
+          <Link 
+            to="/nightcam"
+            className="aspect-square glass-card glass-card-hover cosmic-glow-hover rounded-xl p-4 flex flex-col items-center justify-center text-center transform transition-all duration-500 hover:-translate-y-1"
+          >
+            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-cosmic-indigo/40 mb-4 backdrop-blur-sm border border-white/10">
+              <Moon className="w-6 h-6 text-white" />
+            </div>
+            <h3 className="text-gradient text-lg font-medium mb-2">NightCam</h3>
+          </Link>
         </div>
       </div>
     </Layout>
