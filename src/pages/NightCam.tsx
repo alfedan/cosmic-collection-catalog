@@ -6,17 +6,14 @@ import ImageCard, { ImageData } from '../components/ImageCard';
 import { Plus, Shield, AlertTriangle } from 'lucide-react';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../contexts/AuthContext';
+import { safeSetItem, safeGetItem, compressImageData, addJournalEntry } from '../utils/storageUtils';
 
 const NightCam: React.FC = () => {
   const { isAdmin } = useAuth();
   
   // État pour stocker les pages de vignettes
   const [pages, setPages] = useState<{ id: string; name: string }[]>(() => {
-    const savedPages = localStorage.getItem('nightcam-pages');
-    if (savedPages) {
-      return JSON.parse(savedPages);
-    }
-    return [{ id: 'page-1', name: 'Session 1' }];
+    return safeGetItem('nightcam-pages', [{ id: 'page-1', name: 'Session 1' }]);
   });
   
   // Page actuellement sélectionnée
@@ -24,31 +21,32 @@ const NightCam: React.FC = () => {
   
   // Images de la page actuelle - 12 vignettes
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
-    const savedImages = localStorage.getItem(`nightcam-${currentPage}`);
-    if (savedImages) {
-      return JSON.parse(savedImages);
-    }
-    return Array(12).fill(undefined);
+    return safeGetItem(`nightcam-${currentPage}`, Array(12).fill(undefined));
   });
   
   // Mettre à jour le localStorage quand les pages changent
   useEffect(() => {
-    localStorage.setItem('nightcam-pages', JSON.stringify(pages));
+    safeSetItem('nightcam-pages', JSON.stringify(pages));
   }, [pages]);
   
   // Charger les images quand la page change
   useEffect(() => {
-    const savedImages = localStorage.getItem(`nightcam-${currentPage}`);
-    if (savedImages) {
-      setImages(JSON.parse(savedImages));
-    } else {
-      setImages(Array(12).fill(undefined));
-    }
+    const savedImages = safeGetItem(`nightcam-${currentPage}`, Array(12).fill(undefined));
+    setImages(savedImages);
   }, [currentPage]);
   
   // Sauvegarder les images quand elles changent
   useEffect(() => {
-    localStorage.setItem(`nightcam-${currentPage}`, JSON.stringify(images));
+    // Créer une version des images avec des données d'image compressées
+    const compressedImages = images.map(img => {
+      if (!img) return undefined;
+      return {
+        ...img,
+        src: compressImageData(img.src, 100)
+      };
+    });
+    
+    safeSetItem(`nightcam-${currentPage}`, JSON.stringify(compressedImages));
   }, [images, currentPage]);
   
   const handleAddPage = () => {
@@ -82,17 +80,18 @@ const NightCam: React.FC = () => {
     setImages(newImages);
     
     // Ajouter au journal
-    const journal = JSON.parse(localStorage.getItem('astro-journal') || '[]');
-    journal.unshift({
+    const journalEntry = {
       action: 'upload',
       section: 'NightCam',
       page: pages.find(p => p.id === currentPage)?.name,
       caption,
       date: new Date().toISOString(),
       imageDate: date,
-      id: `nightcam-${currentPage}-${index}`
-    });
-    localStorage.setItem('astro-journal', JSON.stringify(journal.slice(0, 20)));
+      id: `nightcam-${currentPage}-${index}`,
+      src: imageData
+    };
+    
+    addJournalEntry(journalEntry);
     
     toast({
       title: "Image ajoutée",
@@ -107,19 +106,22 @@ const NightCam: React.FC = () => {
     const index = newImages.findIndex(img => img?.id === id);
     
     if (index !== -1) {
+      const imageData = newImages[index];
       newImages[index] = undefined;
       setImages(newImages);
       
       // Ajouter au journal
-      const journal = JSON.parse(localStorage.getItem('astro-journal') || '[]');
-      journal.unshift({
+      const journalEntry = {
         action: 'delete',
         section: 'NightCam',
         page: pages.find(p => p.id === currentPage)?.name,
+        caption: imageData?.caption,
+        imageDate: imageData?.date,
         date: new Date().toISOString(),
         id
-      });
-      localStorage.setItem('astro-journal', JSON.stringify(journal.slice(0, 20)));
+      };
+      
+      addJournalEntry(journalEntry);
       
       toast({
         title: "Image supprimée",

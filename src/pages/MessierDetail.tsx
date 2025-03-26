@@ -7,6 +7,7 @@ import ImageCard, { ImageData } from '../components/ImageCard';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, AlertTriangle } from 'lucide-react';
+import { safeSetItem, safeGetItem, compressImageData, addJournalEntry } from '../utils/storageUtils';
 
 const MessierDetail: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -19,23 +20,14 @@ const MessierDetail: React.FC = () => {
   // Récupérer l'image principale et les images supplémentaires depuis le localStorage
   const [mainImage, setMainImage] = useState<ImageData | null>(null);
   const [extraImages, setExtraImages] = useState<(ImageData | undefined)[]>(() => {
-    const savedImages = localStorage.getItem(`messier-extra-${page}-${imageIndex}`);
-    if (savedImages) {
-      return JSON.parse(savedImages);
-    }
-    return Array(9).fill(undefined);
+    return safeGetItem(`messier-extra-${page}-${imageIndex}`, Array(9).fill(undefined));
   });
   
   // Charger l'image principale
   useEffect(() => {
-    const savedImages = localStorage.getItem(`messier-page-${page}`);
-    if (savedImages) {
-      const images = JSON.parse(savedImages);
-      if (images[imageIndex]) {
-        setMainImage(images[imageIndex]);
-      } else {
-        navigate(`/messier/page/${page}`);
-      }
+    const images = safeGetItem(`messier-page-${page}`, []);
+    if (images[imageIndex]) {
+      setMainImage(images[imageIndex]);
     } else {
       navigate(`/messier/page/${page}`);
     }
@@ -43,7 +35,16 @@ const MessierDetail: React.FC = () => {
   
   // Mettre à jour le localStorage quand les images supplémentaires changent
   useEffect(() => {
-    localStorage.setItem(`messier-extra-${page}-${imageIndex}`, JSON.stringify(extraImages));
+    // Compresser les images avant de les sauvegarder
+    const compressedImages = extraImages.map(img => {
+      if (!img) return undefined;
+      return {
+        ...img,
+        src: compressImageData(img.src, 100)
+      };
+    });
+    
+    safeSetItem(`messier-extra-${page}-${imageIndex}`, JSON.stringify(compressedImages));
   }, [extraImages, page, imageIndex]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
@@ -59,6 +60,20 @@ const MessierDetail: React.FC = () => {
     };
     setExtraImages(newImages);
     
+    // Ajouter une entrée au journal
+    const journalEntry = {
+      action: 'upload',
+      section: 'Messier',
+      page: `Image supplémentaire ${mainImage?.objectName}`,
+      caption: caption,
+      imageDate: date,
+      date: new Date().toISOString(),
+      id: `messier-extra-${page}-${imageIndex}-${index}`,
+      src: imageData
+    };
+    
+    addJournalEntry(journalEntry);
+    
     // Notification de succès
     toast({
       title: "Image supplémentaire ajoutée",
@@ -73,8 +88,24 @@ const MessierDetail: React.FC = () => {
     const index = newImages.findIndex(img => img?.id === id);
     
     if (index !== -1) {
+      const imageData = newImages[index];
       newImages[index] = undefined;
       setExtraImages(newImages);
+      
+      // Ajouter une entrée au journal
+      if (imageData) {
+        const journalEntry = {
+          action: 'delete',
+          section: 'Messier',
+          page: `Image supplémentaire ${mainImage?.objectName}`,
+          caption: imageData.caption,
+          imageDate: imageData.date,
+          date: new Date().toISOString(),
+          id: id
+        };
+        
+        addJournalEntry(journalEntry);
+      }
       
       // Notification de suppression
       toast({
