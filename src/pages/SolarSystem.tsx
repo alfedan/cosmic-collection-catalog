@@ -6,6 +6,7 @@ import ImageCard, { ImageData } from '../components/ImageCard';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, AlertTriangle } from 'lucide-react';
+import { safeSetItem, safeGetItem, compressImageData, addJournalEntry } from '../utils/storageUtils';
 
 const solarSystemObjects = [
   "Soleil",
@@ -25,16 +26,21 @@ const SolarSystem: React.FC = () => {
   
   // Récupérer les images déjà enregistrées depuis le localStorage
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
-    const savedImages = localStorage.getItem('solar-system');
-    if (savedImages) {
-      return JSON.parse(savedImages);
-    }
-    return Array(10).fill(undefined);
+    return safeGetItem('solar-system', Array(10).fill(undefined));
   });
   
   // Mettre à jour le localStorage quand les images changent
   useEffect(() => {
-    localStorage.setItem('solar-system', JSON.stringify(images));
+    // Compresser les images avant de les sauvegarder
+    const compressedImages = images.map(img => {
+      if (!img) return undefined;
+      return {
+        ...img,
+        src: compressImageData(img.src, 100)
+      };
+    });
+    
+    safeSetItem('solar-system', JSON.stringify(compressedImages));
   }, [images]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
@@ -52,6 +58,20 @@ const SolarSystem: React.FC = () => {
     };
     setImages(newImages);
     
+    // Ajouter une entrée au journal
+    const journalEntry = {
+      action: 'upload',
+      section: 'Système Solaire',
+      page: objectName,
+      caption: caption,
+      imageDate: date,
+      date: new Date().toISOString(),
+      id: `solar-system-${index}`,
+      src: imageData
+    };
+    
+    addJournalEntry(journalEntry);
+    
     // Notification de succès
     toast({
       title: "Image ajoutée",
@@ -67,8 +87,25 @@ const SolarSystem: React.FC = () => {
     
     if (index !== -1) {
       const objectName = newImages[index]?.objectName;
+      const imageData = newImages[index];
+      
       newImages[index] = undefined;
       setImages(newImages);
+      
+      // Ajouter une entrée au journal
+      if (imageData) {
+        const journalEntry = {
+          action: 'delete',
+          section: 'Système Solaire',
+          page: objectName,
+          caption: imageData.caption,
+          imageDate: imageData.date,
+          date: new Date().toISOString(),
+          id: id
+        };
+        
+        addJournalEntry(journalEntry);
+      }
       
       // Notification de suppression
       toast({

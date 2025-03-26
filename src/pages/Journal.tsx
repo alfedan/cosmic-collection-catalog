@@ -34,14 +34,14 @@ const Journal: React.FC = () => {
       const journalData = safeGetItem('astro-journal', []);
       setJournal(journalData);
       
-      // Extraire les 12 dernières images téléchargées
+      // Extraire les 12 dernières images téléchargées, toutes sections confondues
       const uploadedImages = journalData
         .filter((entry: JournalEntry) => entry.action === 'upload' && entry.src)
         .sort((a: JournalEntry, b: JournalEntry) => new Date(b.date).getTime() - new Date(a.date).getTime())
         .slice(0, 12)
         .map((entry: JournalEntry) => ({
           id: entry.id,
-          src: entry.src,
+          src: entry.src || '',
           caption: entry.caption || '',
           date: entry.imageDate || entry.date,
           objectName: entry.section + (entry.page ? ` - ${entry.page}` : '')
@@ -72,16 +72,16 @@ const Journal: React.FC = () => {
     }
   };
   
-  // Fonction pour déterminer l'URL de l'image
+  // Fonction pour déterminer l'URL de l'image en fonction de sa section
   const getImageUrl = (entry: JournalEntry) => {
     if (entry.section === 'Messier') {
       const parts = entry.id.split('-');
       if (parts.length >= 3) {
-        const page = parts[1];
-        const imageId = parts[2];
+        const page = parts[2];
+        const imageId = parts[3];
         
         if (entry.id.includes('extra')) {
-          const extraId = parts[4];
+          const extraId = parts[5];
           return `/messier/extra/${page}/${imageId}/${extraId}`;
         }
         
@@ -126,7 +126,7 @@ const Journal: React.FC = () => {
           </p>
         </div>
         
-        {/* Section des dernières images */}
+        {/* Section des dernières images, toutes sections confondues */}
         <div className="mb-12">
           <h2 className="text-2xl font-semibold mb-6 text-white">
             Dernières images <span className="text-cosmic-purple">({latestImages.length})</span>

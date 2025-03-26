@@ -6,22 +6,28 @@ import ImageCard, { ImageData } from '../components/ImageCard';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, AlertTriangle } from 'lucide-react';
+import { safeSetItem, safeGetItem, compressImageData, addJournalEntry } from '../utils/storageUtils';
 
 const OtherViews: React.FC = () => {
   const { isAdmin } = useAuth();
   
   // Récupérer les images déjà enregistrées depuis le localStorage
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
-    const savedImages = localStorage.getItem('other-views');
-    if (savedImages) {
-      return JSON.parse(savedImages);
-    }
-    return Array(10).fill(undefined);
+    return safeGetItem('other-views', Array(10).fill(undefined));
   });
   
   // Mettre à jour le localStorage quand les images changent
   useEffect(() => {
-    localStorage.setItem('other-views', JSON.stringify(images));
+    // Compresser les images avant de les sauvegarder
+    const compressedImages = images.map(img => {
+      if (!img) return undefined;
+      return {
+        ...img,
+        src: compressImageData(img.src, 100)
+      };
+    });
+    
+    safeSetItem('other-views', JSON.stringify(compressedImages));
   }, [images]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
@@ -35,6 +41,19 @@ const OtherViews: React.FC = () => {
       date
     };
     setImages(newImages);
+    
+    // Ajouter une entrée au journal
+    const journalEntry = {
+      action: 'upload',
+      section: 'Autres Vues',
+      caption: caption,
+      imageDate: date,
+      date: new Date().toISOString(),
+      id: `other-views-${index}`,
+      src: imageData
+    };
+    
+    addJournalEntry(journalEntry);
     
     // Notification de succès
     toast({
@@ -50,8 +69,23 @@ const OtherViews: React.FC = () => {
     const index = newImages.findIndex(img => img?.id === id);
     
     if (index !== -1) {
+      const imageData = newImages[index];
       newImages[index] = undefined;
       setImages(newImages);
+      
+      // Ajouter une entrée au journal
+      if (imageData) {
+        const journalEntry = {
+          action: 'delete',
+          section: 'Autres Vues',
+          caption: imageData.caption,
+          imageDate: imageData.date,
+          date: new Date().toISOString(),
+          id: id
+        };
+        
+        addJournalEntry(journalEntry);
+      }
       
       // Notification de suppression
       toast({
