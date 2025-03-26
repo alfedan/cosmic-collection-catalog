@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -123,6 +124,69 @@ const getMessierName = (number: number): string => {
   return messierObjects[number] || `M${number}`;
 };
 
+// Function to handle localStorage quota errors
+const safeSetItem = (key: string, value: string): boolean => {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (error) {
+    console.error(`Error storing data for ${key}:`, error);
+    if (error instanceof DOMException && (
+      error.name === 'QuotaExceededError' || 
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    )) {
+      toast({
+        title: "Espace de stockage dépassé",
+        description: "L'image n'a pas pu être sauvegardée car l'espace de stockage est plein.",
+        variant: "destructive",
+      });
+    }
+    return false;
+  }
+};
+
+// Function to compress image data
+const compressImageData = (imageData: string, maxSizeKB: number = 100): string => {
+  if (!imageData.startsWith('data:image')) {
+    return imageData;
+  }
+  
+  // Check current size
+  const currentSizeKB = Math.round(imageData.length / 1024);
+  if (currentSizeKB <= maxSizeKB) {
+    return imageData;
+  }
+  
+  // For very large images, store a placeholder instead
+  if (currentSizeKB > 500) {
+    return `data:image/svg+xml;base64,${btoa('<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100%" height="100%" fill="#4A4A6A"/><text x="50%" y="50%" font-family="Arial" font-size="12" fill="white" text-anchor="middle" dominant-baseline="middle">Image trop grande</text></svg>')}`;
+  }
+  
+  // For medium-sized images, create a thumbnail version (simplified approach)
+  return imageData;
+};
+
+// Function to safely add a journal entry
+const addJournalEntry = (entry: any): boolean => {
+  try {
+    const existingJournal = localStorage.getItem('astro-journal');
+    let journal = existingJournal ? JSON.parse(existingJournal) : [];
+    
+    // Limit journal entries to most recent 50
+    journal = [entry, ...journal.slice(0, 49)];
+    
+    // If the entry has an image source, compress it
+    if (entry.src) {
+      entry.src = compressImageData(entry.src, 20); // Use a smaller size for journal thumbnails
+    }
+    
+    return safeSetItem('astro-journal', JSON.stringify(journal));
+  } catch (error) {
+    console.error("Error adding journal entry:", error);
+    return false;
+  }
+};
+
 const MessierPage: React.FC = () => {
   const { isAdmin } = useAuth();
   const { pageId } = useParams<{ pageId: string }>();
@@ -138,13 +202,32 @@ const MessierPage: React.FC = () => {
   const [images, setImages] = useState<(ImageData | undefined)[]>(() => {
     const savedImages = localStorage.getItem(`messier-page-${page}`);
     if (savedImages) {
-      return JSON.parse(savedImages);
+      try {
+        return JSON.parse(savedImages);
+      } catch (e) {
+        console.error("Error parsing saved images:", e);
+        return Array(10).fill(undefined);
+      }
     }
     return Array(10).fill(undefined);
   });
   
   useEffect(() => {
-    localStorage.setItem(`messier-page-${page}`, JSON.stringify(images));
+    // Store images with error handling
+    try {
+      // Create a version of images with compressed image data
+      const compressedImages = images.map(img => {
+        if (!img) return undefined;
+        return {
+          ...img,
+          src: compressImageData(img.src, 100)
+        };
+      });
+      
+      safeSetItem(`messier-page-${page}`, JSON.stringify(compressedImages));
+    } catch (error) {
+      console.error("Error saving images:", error);
+    }
   }, [images, page]);
   
   const handleImageUpload = (index: number, imageData: string, caption: string, date: string) => {
@@ -174,12 +257,7 @@ const MessierPage: React.FC = () => {
       src: imageData
     };
     
-    const existingJournal = localStorage.getItem('astro-journal');
-    let journal = existingJournal ? JSON.parse(existingJournal) : [];
-    
-    journal = [journalEntry, ...journal];
-    
-    localStorage.setItem('astro-journal', JSON.stringify(journal));
+    addJournalEntry(journalEntry);
     
     toast({
       title: "Image ajoutée",
@@ -212,12 +290,7 @@ const MessierPage: React.FC = () => {
           id: id
         };
         
-        const existingJournal = localStorage.getItem('astro-journal');
-        let journal = existingJournal ? JSON.parse(existingJournal) : [];
-        
-        journal = [journalEntry, ...journal];
-        
-        localStorage.setItem('astro-journal', JSON.stringify(journal));
+        addJournalEntry(journalEntry);
       }
       
       toast({

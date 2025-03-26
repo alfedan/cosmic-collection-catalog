@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { Calendar, Upload, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ImageCard, { ImageData } from '../components/ImageCard';
 import { AspectRatio } from '../components/ui/aspect-ratio';
 
 interface JournalEntry {
@@ -17,43 +16,60 @@ interface JournalEntry {
   src?: string;
 }
 
+interface ImageData {
+  id: string;
+  src: string;
+  caption: string;
+  date: string;
+  objectName?: string;
+}
+
 const Journal: React.FC = () => {
   const [journal, setJournal] = useState<JournalEntry[]>([]);
   const [latestImages, setLatestImages] = useState<ImageData[]>([]);
   
   useEffect(() => {
-    const savedJournal = localStorage.getItem('astro-journal');
-    if (savedJournal) {
-      const journalData = JSON.parse(savedJournal);
-      setJournal(journalData);
-      
-      // Extraire les 12 dernières images téléchargées
-      const uploadedImages = journalData
-        .filter((entry: JournalEntry) => entry.action === 'upload' && entry.src)
-        .sort((a: JournalEntry, b: JournalEntry) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 12)
-        .map((entry: JournalEntry) => ({
-          id: entry.id,
-          src: entry.src,
-          caption: entry.caption || '',
-          date: entry.imageDate || entry.date,
-          objectName: entry.section + (entry.page ? ` - ${entry.page}` : '')
-        }));
-      
-      setLatestImages(uploadedImages);
+    try {
+      const savedJournal = localStorage.getItem('astro-journal');
+      if (savedJournal) {
+        const journalData = JSON.parse(savedJournal);
+        setJournal(journalData);
+        
+        // Extraire les 12 dernières images téléchargées
+        const uploadedImages = journalData
+          .filter((entry: JournalEntry) => entry.action === 'upload' && entry.src)
+          .sort((a: JournalEntry, b: JournalEntry) => new Date(b.date).getTime() - new Date(a.date).getTime())
+          .slice(0, 12)
+          .map((entry: JournalEntry) => ({
+            id: entry.id,
+            src: entry.src,
+            caption: entry.caption || '',
+            date: entry.imageDate || entry.date,
+            objectName: entry.section + (entry.page ? ` - ${entry.page}` : '')
+          }));
+        
+        setLatestImages(uploadedImages);
+      }
+    } catch (error) {
+      console.error("Error loading journal:", error);
     }
   }, []);
   
   // Fonction pour formater la date
   const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    }).format(date);
+    try {
+      const date = new Date(dateString);
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(date);
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return dateString;
+    }
   };
   
   // Fonction pour déterminer l'URL de l'image
