@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import Layout from '../components/Layout';
@@ -164,6 +163,24 @@ const MessierPage: React.FC = () => {
     };
     setImages(newImages);
     
+    const journalEntry = {
+      action: 'upload',
+      section: 'Messier',
+      page: `Page ${page}`,
+      caption: caption,
+      imageDate: date,
+      date: new Date().toISOString(),
+      id: `messier-${page}-${index}`,
+      src: imageData
+    };
+    
+    const existingJournal = localStorage.getItem('astro-journal');
+    let journal = existingJournal ? JSON.parse(existingJournal) : [];
+    
+    journal = [journalEntry, ...journal];
+    
+    localStorage.setItem('astro-journal', JSON.stringify(journal));
+    
     toast({
       title: "Image ajoutée",
       description: `Image ajoutée pour ${objectName}`,
@@ -178,10 +195,30 @@ const MessierPage: React.FC = () => {
     
     if (index !== -1) {
       const objectName = newImages[index]?.objectName;
+      const imageData = newImages[index];
       newImages[index] = undefined;
       setImages(newImages);
       
       localStorage.removeItem(`messier-extra-${page}-${index}`);
+      
+      if (imageData) {
+        const journalEntry = {
+          action: 'delete',
+          section: 'Messier',
+          page: `Page ${page}`,
+          caption: imageData.caption,
+          imageDate: imageData.date,
+          date: new Date().toISOString(),
+          id: id
+        };
+        
+        const existingJournal = localStorage.getItem('astro-journal');
+        let journal = existingJournal ? JSON.parse(existingJournal) : [];
+        
+        journal = [journalEntry, ...journal];
+        
+        localStorage.setItem('astro-journal', JSON.stringify(journal));
+      }
       
       toast({
         title: "Image supprimée",
