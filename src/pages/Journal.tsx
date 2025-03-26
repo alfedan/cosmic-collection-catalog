@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import Layout from '../components/Layout';
 import { Calendar, Upload, Trash2, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ImageCard, { ImageData } from '../components/ImageCard';
+import { AspectRatio } from '../components/ui/aspect-ratio';
 
 interface JournalEntry {
   action: 'upload' | 'delete' | 'view';
@@ -12,15 +14,33 @@ interface JournalEntry {
   date: string;
   imageDate?: string;
   id: string;
+  src?: string;
 }
 
 const Journal: React.FC = () => {
   const [journal, setJournal] = useState<JournalEntry[]>([]);
+  const [latestImages, setLatestImages] = useState<ImageData[]>([]);
   
   useEffect(() => {
     const savedJournal = localStorage.getItem('astro-journal');
     if (savedJournal) {
-      setJournal(JSON.parse(savedJournal));
+      const journalData = JSON.parse(savedJournal);
+      setJournal(journalData);
+      
+      // Extraire les 12 dernières images téléchargées
+      const uploadedImages = journalData
+        .filter((entry: JournalEntry) => entry.action === 'upload' && entry.src)
+        .sort((a: JournalEntry, b: JournalEntry) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, 12)
+        .map((entry: JournalEntry) => ({
+          id: entry.id,
+          src: entry.src,
+          caption: entry.caption || '',
+          date: entry.imageDate || entry.date,
+          objectName: entry.section + (entry.page ? ` - ${entry.page}` : '')
+        }));
+      
+      setLatestImages(uploadedImages);
     }
   }, []);
   
@@ -77,7 +97,7 @@ const Journal: React.FC = () => {
   
   return (
     <Layout>
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-10 animate-fade-in-up">
           <span className="text-sm px-2.5 py-1 rounded-full bg-cosmic-purple/30 text-white/90 mb-4 inline-block border border-cosmic-purple/30">
             Journal
@@ -90,7 +110,53 @@ const Journal: React.FC = () => {
           </p>
         </div>
         
+        {/* Section des dernières images */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-semibold mb-6 text-white">
+            Dernières images <span className="text-cosmic-purple">({latestImages.length})</span>
+          </h2>
+          
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+            {latestImages.length > 0 ? (
+              latestImages.map((image, index) => {
+                const entry = journal.find(e => e.id === image.id);
+                const to = entry ? getImageUrl(entry) : '#';
+                
+                return (
+                  <div key={image.id} className="animate-fade-in-up" style={{ animationDelay: `${0.05 * index}s` }}>
+                    <AspectRatio ratio={1/1} className="glass-card rounded-lg overflow-hidden">
+                      <Link to={to} className="block w-full h-full relative group">
+                        <img 
+                          src={image.src} 
+                          alt={image.caption} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        />
+                        <div className="absolute inset-0 opacity-0 group-hover:opacity-100 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity flex flex-col justify-end p-3">
+                          <p className="text-white text-xs line-clamp-2">
+                            {image.objectName}
+                          </p>
+                          <div className="flex items-center text-white/70 text-xs mt-1">
+                            <Calendar className="w-3 h-3 mr-1" />
+                            <span>{formatDate(image.date)}</span>
+                          </div>
+                        </div>
+                      </Link>
+                    </AspectRatio>
+                  </div>
+                );
+              })
+            ) : (
+              <div className="col-span-full text-center py-6">
+                <p className="text-white/50">Aucune image téléchargée</p>
+              </div>
+            )}
+          </div>
+        </div>
+        
+        {/* Journal d'activité */}
         <div className="space-y-4">
+          <h2 className="text-2xl font-semibold mb-6 text-white">Historique d'activité</h2>
+          
           {journal.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-white/50">Aucune activité à afficher pour le moment</p>
