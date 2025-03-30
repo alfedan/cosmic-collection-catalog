@@ -5,6 +5,7 @@ import { ImageData } from '../components/ImageCard';
 import { Card, CardContent } from '../components/ui/card';
 import { Folder, ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { Skeleton } from '../components/ui/skeleton';
 
 // Exemple d'images permanentes stockées dans le dépôt
 const permanentImages: ImageData[] = [
@@ -31,7 +32,7 @@ const permanentImages: ImageData[] = [
   },
   {
     id: 'permanent-4',
-    src: '/images/M27_2024O919.jpg', // Nouvelle image téléchargée
+    src: '/images/M27_2024O919.jpg', // Vérifiez le nom exact du fichier
     caption: 'Nébuleuse de l\'Haltère (M27)',
     date: '2024-09-19',
     objectName: 'M27'
@@ -69,16 +70,26 @@ const AstroFolder: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {permanentImages.map((image, index) => (
             <Card key={image.id} className="glass-card overflow-hidden animate-fade-in-up" style={{ animationDelay: `${0.05 * index}s` }}>
-              <div className="aspect-square overflow-hidden">
+              <div className="aspect-square overflow-hidden relative">
                 <img 
                   src={image.src} 
                   alt={image.caption} 
                   className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                  onLoad={(e) => {
+                    console.log(`Image chargée: ${image.src}`);
+                    (e.target as HTMLImageElement).classList.remove('opacity-0');
+                    (e.target as HTMLImageElement).classList.add('opacity-100');
+                  }}
                   onError={(e) => {
+                    console.error(`Erreur de chargement d'image: ${image.src}`);
                     // Fallback pour les images qui ne chargent pas
                     (e.target as HTMLImageElement).src = '/placeholder.svg';
                   }}
+                  style={{ opacity: 0, transition: 'opacity 0.3s ease-in-out' }}
                 />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Skeleton className="w-full h-full absolute" />
+                </div>
               </div>
               <CardContent className="p-4">
                 <h3 className="font-medium text-white mb-1">{image.objectName}</h3>
