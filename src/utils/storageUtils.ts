@@ -1,6 +1,9 @@
 
 // Utilitaires pour la gestion du stockage local et des images
 
+// Préfixe pour les éléments du dossier astro
+const ASTRO_FOLDER_PREFIX = 'astro:';
+
 // Fonction pour compresser les données d'image
 export const compressImageData = (imageData: string, maxSizeKB: number = 100): string => {
   if (!imageData.startsWith('data:image')) {
@@ -22,6 +25,71 @@ export const compressImageData = (imageData: string, maxSizeKB: number = 100): s
   return imageData;
 };
 
+// Fonction pour sauvegarder en toute sécurité dans le localStorage avec le prefix astro:
+export const safeSetItemInAstroFolder = (key: string, value: string): boolean => {
+  try {
+    localStorage.setItem(`${ASTRO_FOLDER_PREFIX}${key}`, value);
+    
+    // Mettre à jour la liste des fichiers dans le dossier astro
+    const astroFiles = getAstroFolderFiles();
+    if (!astroFiles.includes(key)) {
+      astroFiles.push(key);
+      localStorage.setItem(`${ASTRO_FOLDER_PREFIX}files`, JSON.stringify(astroFiles));
+    }
+    
+    return true;
+  } catch (error) {
+    console.error(`Erreur lors du stockage des données pour ${key} dans le dossier astro:`, error);
+    if (error instanceof DOMException && (
+      error.name === 'QuotaExceededError' || 
+      error.name === 'NS_ERROR_DOM_QUOTA_REACHED'
+    )) {
+      console.warn("Espace de stockage dépassé");
+    }
+    return false;
+  }
+};
+
+// Fonction pour récupérer un élément depuis le dossier astro
+export const getItemFromAstroFolder = (key: string, defaultValue: any): any => {
+  try {
+    const item = localStorage.getItem(`${ASTRO_FOLDER_PREFIX}${key}`);
+    return item ? JSON.parse(item) : defaultValue;
+  } catch (error) {
+    console.error(`Erreur lors de la récupération des données pour ${key} depuis le dossier astro:`, error);
+    return defaultValue;
+  }
+};
+
+// Fonction pour lister tous les fichiers dans le dossier astro
+export const getAstroFolderFiles = (): string[] => {
+  try {
+    const files = localStorage.getItem(`${ASTRO_FOLDER_PREFIX}files`);
+    return files ? JSON.parse(files) : [];
+  } catch (error) {
+    console.error("Erreur lors de la récupération des fichiers du dossier astro:", error);
+    return [];
+  }
+};
+
+// Fonction pour supprimer un élément du dossier astro
+export const removeItemFromAstroFolder = (key: string): boolean => {
+  try {
+    localStorage.removeItem(`${ASTRO_FOLDER_PREFIX}${key}`);
+    
+    // Mettre à jour la liste des fichiers
+    const astroFiles = getAstroFolderFiles();
+    const updatedFiles = astroFiles.filter(file => file !== key);
+    localStorage.setItem(`${ASTRO_FOLDER_PREFIX}files`, JSON.stringify(updatedFiles));
+    
+    return true;
+  } catch (error) {
+    console.error(`Erreur lors de la suppression de ${key} du dossier astro:`, error);
+    return false;
+  }
+};
+
+// Les fonctions originales restent inchangées pour maintenir la compatibilité
 // Fonction pour sauvegarder en toute sécurité dans le localStorage
 export const safeSetItem = (key: string, value: string): boolean => {
   try {
@@ -51,6 +119,19 @@ export const addJournalEntry = (entry: any): boolean => {
     // Si l'entrée a une source d'image, la compresser
     if (entry.src) {
       entry.src = compressImageData(entry.src, 20); // Utiliser une taille plus petite pour les miniatures du journal
+      
+      // Également sauvegarder l'image dans le dossier astro si c'est un upload
+      if (entry.action === 'upload') {
+        const imageFileName = `${entry.section.toLowerCase()}-${entry.id}-${new Date().getTime()}`;
+        safeSetItemInAstroFolder(imageFileName, JSON.stringify({
+          id: entry.id,
+          src: compressImageData(entry.src, 100),
+          caption: entry.caption || '',
+          date: entry.imageDate || new Date().toISOString(),
+          section: entry.section,
+          objectName: entry.objectName || ''
+        }));
+      }
     }
     
     return safeSetItem('astro-journal', JSON.stringify(journal));
@@ -70,3 +151,4 @@ export const safeGetItem = (key: string, defaultValue: any): any => {
     return defaultValue;
   }
 };
+
