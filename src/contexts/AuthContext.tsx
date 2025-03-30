@@ -4,7 +4,6 @@ import { toast } from "@/components/ui/use-toast";
 
 type AuthContextType = {
   isAdmin: boolean;
-  isLoggedIn: boolean; // Ajout de cette propriété
   login: (username: string, password: string) => boolean;
   logout: () => void;
 };
@@ -59,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ isAdmin, isLoggedIn: isAdmin, login, logout }}>
+    <AuthContext.Provider value={{ isAdmin, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

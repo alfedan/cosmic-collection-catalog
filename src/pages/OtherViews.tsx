@@ -6,13 +6,7 @@ import ImageCard, { ImageData } from '../components/ImageCard';
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, AlertTriangle } from 'lucide-react';
-import { 
-  safeSetItem, 
-  safeGetItem, 
-  compressImageData, 
-  addJournalEntry,
-  safeSetItemInAstroFolder
-} from '../utils/storageUtils';
+import { safeSetItem, safeGetItem, compressImageData, addJournalEntry } from '../utils/storageUtils';
 
 const OtherViews: React.FC = () => {
   const { isAdmin } = useAuth();
@@ -40,25 +34,13 @@ const OtherViews: React.FC = () => {
     if (!isAdmin) return;
     
     const newImages = [...images];
-    const imageId = `other-views-${index}`;
-    
     newImages[index] = {
-      id: imageId,
+      id: `other-views-${index}`,
       src: imageData,
       caption,
       date
     };
     setImages(newImages);
-    
-    // Sauvegarder l'image dans le dossier astro
-    const astroFileName = `autres-vues-${imageId}-${new Date().getTime()}`;
-    safeSetItemInAstroFolder(astroFileName, JSON.stringify({
-      id: imageId,
-      src: compressImageData(imageData, 200),
-      caption,
-      date,
-      section: "Autres Vues"
-    }));
     
     // Ajouter une entrée au journal
     const journalEntry = {
@@ -67,7 +49,7 @@ const OtherViews: React.FC = () => {
       caption: caption,
       imageDate: date,
       date: new Date().toISOString(),
-      id: imageId,
+      id: `other-views-${index}`,
       src: imageData
     };
     
@@ -76,7 +58,7 @@ const OtherViews: React.FC = () => {
     // Notification de succès
     toast({
       title: "Image ajoutée",
-      description: "Votre image a été ajoutée aux Autres Vues et sauvegardée dans le dossier astro"
+      description: "Votre image a été ajoutée aux Autres Vues"
     });
   };
   
