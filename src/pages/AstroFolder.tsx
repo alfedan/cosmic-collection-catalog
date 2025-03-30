@@ -32,7 +32,7 @@ const permanentImages: ImageData[] = [
   },
   {
     id: 'permanent-4',
-    src: '/images/M27_2024O919.jpg', // Vérifiez le nom exact du fichier
+    src: '/images/M27_20240919.jpg', // Correction du nom du fichier
     caption: 'Nébuleuse de l\'Haltère (M27)',
     date: '2024-09-19',
     objectName: 'M27'
