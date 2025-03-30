@@ -28,6 +28,13 @@ const permanentImages: ImageData[] = [
     caption: 'Pleine lune en haute résolution',
     date: '2023-03-10',
     objectName: 'Lune'
+  },
+  {
+    id: 'permanent-4',
+    src: '/images/M27_2024O919.jpg', // Nouvelle image téléchargée
+    caption: 'Nébuleuse de l\'Haltère (M27)',
+    date: '2024-09-19',
+    objectName: 'M27'
   }
 ];
 
