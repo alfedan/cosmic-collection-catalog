@@ -2,7 +2,7 @@
 import React from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../contexts/AuthContext';
-import { Shield, AlertTriangle, Star, Sun, Image as ImageIcon, Moon, Folder } from 'lucide-react';
+import { Shield, AlertTriangle, Star, Sun, Image as ImageIcon, Moon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const Index: React.FC = () => {
@@ -80,16 +80,6 @@ const Index: React.FC = () => {
               <Moon className="w-6 h-6 text-white" />
             </div>
             <h3 className="text-gradient text-lg font-medium mb-2">NightCam</h3>
-          </Link>
-          
-          <Link 
-            to="/astro-folder"
-            className="aspect-square glass-card glass-card-hover cosmic-glow-hover rounded-xl p-4 flex flex-col items-center justify-center text-center transform transition-all duration-500 hover:-translate-y-1"
-          >
-            <div className="w-12 h-12 rounded-full flex items-center justify-center bg-cosmic-indigo/40 mb-4 backdrop-blur-sm border border-white/10">
-              <Folder className="w-6 h-6 text-white" />
-            </div>
-            <h3 className="text-gradient text-lg font-medium mb-2">Images Permanentes</h3>
           </Link>
         </div>
       </div>

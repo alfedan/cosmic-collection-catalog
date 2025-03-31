@@ -19,7 +19,6 @@ import Search from "./pages/Search";
 import Journal from "./pages/Journal";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
-import AstroFolder from "./pages/AstroFolder";
 
 const queryClient = new QueryClient();
 
@@ -43,7 +42,6 @@ const App = () => (
             <Route path="/nightcam" element={<NightCam />} />
             <Route path="/search" element={<Search />} />
             <Route path="/journal" element={<Journal />} />
-            <Route path="/astro-folder" element={<AstroFolder />} />
             <Route path="/admin" element={<Admin />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
